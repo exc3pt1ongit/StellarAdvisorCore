@@ -98,9 +98,28 @@ namespace StellarAdvisorCore.Commands
         {
             await context.DeferAsync();
 
-            // write a realization
+            using (SqliteContext sqlite = new SqliteContext())
+            {
+                var memberToUnmute = await sqlite.MutedUsers.FirstOrDefaultAsync(m => m.MemberId == (ulong)memberId);
+                
+                if (memberToUnmute == null)
+                {
+                    await context.EditResponseAsync(new DiscordWebhookBuilder().WithContent("Невідомий користувач / або у користувача немає блокування чату."));
+                    return;
+                }
+                
+                sqlite.MutedUsers.Remove(memberToUnmute);
+                await sqlite.SaveChangesAsync();
 
-            await context.EditResponseAsync(new DiscordWebhookBuilder().WithContent("Under development..."));
+                var embedMessage = new DiscordEmbedBuilder
+                {
+                    Color = DiscordColor.Lilac,
+                    Title = "Зняття блокування чату",
+                    Description = $"{context.Member.Username} успішно зняв блокування чату для користувача з Id: {memberToUnmute.MemberId}"
+                };
+
+                await context.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(embedMessage));
+            }
         }
 
         [SlashCommand("getuserswithrole", "Get users with a specific role")]
