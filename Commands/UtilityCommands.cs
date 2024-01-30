@@ -8,6 +8,7 @@ using StellarAdvisorCore.Context;
 using StellarAdvisorCore.Logging;
 using StellarAdvisorCore.Models;
 using StellarAdvisorCore.Services;
+using StellarAdvisorCore.Bot;
 
 namespace StellarAdvisorCore.Commands
 {
@@ -199,6 +200,21 @@ namespace StellarAdvisorCore.Commands
         }
 
         #endregion
+
+        [SlashCommand("stellaradvisor", "Getting the information about Stellar Advisor")]
+        public async Task StellarAdvisorCommand(InteractionContext context)
+        {
+            await context.DeferAsync();
+
+            var embedMessage = new DiscordEmbedBuilder
+            {
+                Color = DiscordColor.Lilac,
+                Title = $"Stellar Advisor",
+                Description = $"Версія: {Program.BotConfig.Version}"
+            };
+
+            await context.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(embedMessage));
+        }
 
         [SlashCommand("checkusers", "Checking the users without the roles.")]
         public async Task CheckUsersWithoutRoles(InteractionContext context)
