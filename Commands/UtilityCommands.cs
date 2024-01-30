@@ -30,6 +30,7 @@ namespace StellarAdvisorCore.Commands
                 {
                     await Logger.LogWarningAsync("Inside the if");
                     await sqlite.Database.MigrateAsync();
+                    await sqlite.SaveChangesAsync();
                 }
 
                 var embedMessage = new DiscordEmbedBuilder
