@@ -8,7 +8,7 @@ using StellarAdvisorCore.Context;
 using StellarAdvisorCore.Logging;
 using StellarAdvisorCore.Models;
 using StellarAdvisorCore.Services;
-using StellarAdvisorCore.Bot;
+using StellarAdvisorCore.Extensions;
 
 namespace StellarAdvisorCore.Commands
 {
@@ -20,7 +20,6 @@ namespace StellarAdvisorCore.Commands
         [SlashCommand("migrate", "Migrates the database")]
         public async Task MigrateSqliteCommand(InteractionContext context)
         {
-            await context.DeferAsync();
             Logger.Log("Manual command migrating");
 
             await using SqliteContext sqlite = new SqliteContext();
@@ -37,7 +36,7 @@ namespace StellarAdvisorCore.Commands
                 Description = "Базу даних Sqlite успішно мігровано."
             };
 
-            await context.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(embedMessage));
+            await context.ResponseWithEmbedAsync(embedMessage);
             await Logger.LogSuccessAsync("Sqlite Migration complete");
         }
 
@@ -60,17 +59,39 @@ namespace StellarAdvisorCore.Commands
                 await sqlite.SaveChangesAsync();
 
                 var count = sqlite.MutedUsers.Count();
-                await context.Channel.SendMessageAsync($"There are now {count} muted users.");
+
+                var embedMessage = new DiscordEmbedBuilder
+                {
+                    Color = DiscordColor.Lilac,
+                    Title = "Блокування чату",
+                    Description = $"{context.Member.Username} заблокував чат користувачу з Id: {mute.MemberId}\n" +
+                                  $"Кількість учасників з заблокованим чатом: {count}"
+                };
+
+                await context.ResponseWithEmbedAsync(embedMessage);
             }
         }
 
         [SlashCommand("getmuted", "Testing Facility -> Getting pseudo muted members")]
         public async Task GetAllMutedTFCommand(InteractionContext context)
         {
-            await context.DeferAsync();
-            var currentDate = DateTime.Now.AddDays(3);
+            var cooldownDuration = TimeSpan.FromSeconds(2);
 
-            var description = string.Empty;
+            if (!_utilityService.CheckCooldown("getmuted", cooldownDuration, out TimeSpan remainingCooldown))
+            {
+                _utilityService.CommandCooldowns["getmuted"] = DateTime.UtcNow;
+
+                var embedMessage = new DiscordEmbedBuilder
+                {
+                    Color = DiscordColor.Lilac,
+                    Title = "Користувачі з блокуванням чату",
+                    Description = $"Помилка використання. Залишилося часу: {remainingCooldown.TotalSeconds} сек."
+                };
+
+                await context.ResponseWithEmbedAsync(embedMessage);
+            }
+
+            string description = string.Empty;
 
             using (SqliteContext sqlite = new SqliteContext())
             {
@@ -78,25 +99,24 @@ namespace StellarAdvisorCore.Commands
 
                 foreach (var member in allMutedMembers)
                 {
-                    description += $"\nMemberId: {member.MemberId}, exp: {member.MutedExpiration}, reason: {member.MutedReason}";
+                    description += $"Id: {member.Id}, MemberId: {member.MemberId}, exp: {member.MutedExpiration}, reason: {member.MutedReason}\n";
                 }
+
+                var embedMessage = new DiscordEmbedBuilder
+                {
+                    Color = DiscordColor.Lilac,
+                    Title = "Користувачі з блокуванням чату",
+                    Description = $"Список користувачів:\n{description}"
+                };
+
+                await context.ResponseWithEmbedAsync(embedMessage);
             }
-
-            var embedMessage = new DiscordEmbedBuilder
-            {
-                Color = DiscordColor.Lilac,
-                Title = "Користувачі з блокуванням чату",
-                Description = $"Список користувачів: {description}"
-            };
-
-            await context.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(embedMessage));
         }
 
         [SlashCommand("removemute", "Testing Facility -> Removing pseudo mute")]
         public async Task RemoveMemberMuteTFCommand(InteractionContext context,
             [Option("memberId", "Discord member Id")] long memberId)
         {
-            await context.DeferAsync();
 
             using (SqliteContext sqlite = new SqliteContext())
             {
@@ -104,7 +124,7 @@ namespace StellarAdvisorCore.Commands
                 
                 if (memberToUnmute == null)
                 {
-                    await context.EditResponseAsync(new DiscordWebhookBuilder().WithContent("Невідомий користувач / або у користувача немає блокування чату."));
+                    await context.ResponseWithMessageAsync("Невідомий користувач / або у користувача немає блокування чату.");
                     return;
                 }
                 
@@ -117,8 +137,8 @@ namespace StellarAdvisorCore.Commands
                     Title = "Зняття блокування чату",
                     Description = $"{context.Member.Username} успішно зняв блокування чату для користувача з Id: {memberToUnmute.MemberId}"
                 };
-
-                await context.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(embedMessage));
+                
+                await context.ResponseWithEmbedAsync(embedMessage);
             }
         }
 
@@ -126,8 +146,6 @@ namespace StellarAdvisorCore.Commands
         public async Task GetUsersWithRole(InteractionContext context,
         [Option("role", "The role to search for")] string roleInput)
         {
-            await context.DeferAsync();
-
             var guild = context.Guild;
             var role = _utilityService.GetRoleFromInput(guild, roleInput);
 
@@ -152,14 +170,12 @@ namespace StellarAdvisorCore.Commands
                 Description = usersList
             };
 
-            await context.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(embedMessage));
+            await context.ResponseWithEmbedAsync(embedMessage);
         }
 
         [SlashCommand("unverified", "Get role for unverified users.")]
         public async Task GetRoleForUnverifiedUsers(InteractionContext context)
         {
-            await context.DeferAsync();
-
             var role = context.Guild.GetRole(Program.BotConfig.Values.UnverifiedRoleId);
 
             var embedMessage = new DiscordEmbedBuilder
@@ -171,7 +187,7 @@ namespace StellarAdvisorCore.Commands
                 $"Колір ролі: {role.Color}"
             };
 
-            await context.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(embedMessage));
+            await context.ResponseWithEmbedAsync(embedMessage);
         }
 
         #region ModpackCommand
@@ -179,13 +195,17 @@ namespace StellarAdvisorCore.Commands
         [SlashCommand("modpack", "Get information about actual server modpack.")]
         public async Task GetModpackSlashCommand(InteractionContext context)
         {
-            await context.DeferAsync();
-
             try
             {
                 ulong guildId = 1153809293267701840;
                 ulong channelId = 1160880734521806959;
                 ulong messageId = 1161620016739909714;
+
+                if (Program.Client == null)
+                {
+                    await context.ResponseWithMessageAsync("Клієнт не налаштовано. Зверніться до технічного адміністратора");
+                    return;
+                }
 
                 var guild = await Program.Client.GetGuildAsync(guildId);
                 await Console.Out.WriteLineAsync(guild.Name);
@@ -197,6 +217,13 @@ namespace StellarAdvisorCore.Commands
 
                 if (message != null)
                 {
+                    var messageEmbeds = message.Embeds;
+
+                    foreach (var embed in messageEmbeds)
+                    {
+                        Logger.Log(embed.Description);
+                    }
+
                     var embedMessage = new DiscordEmbedBuilder
                     {
                         Title = $"Оригінальне повідомлення від {message.Author.Username}",
@@ -204,17 +231,17 @@ namespace StellarAdvisorCore.Commands
                         Color = DiscordColor.Lilac
                     };
 
-                    await context.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(embedMessage));
+                    await context.ResponseWithEmbedAsync(embedMessage);
                 }
                 else
                 {
-                    await context.EditResponseAsync(new DiscordWebhookBuilder().WithContent("Message not found."));
+                    await context.ResponseWithMessageAsync("Повідомлення не знайдено");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
-                await context.EditResponseAsync(new DiscordWebhookBuilder().WithContent("An error occurred while processing the request."));
+                await Logger.LogErrorAsync($"Error: {ex.Message}");
+                await context.ResponseWithMessageAsync("Під час обробки запиту виникла помилка");
             }
         }
 
@@ -223,23 +250,19 @@ namespace StellarAdvisorCore.Commands
         [SlashCommand("stellaradvisor", "Getting the information about Stellar Advisor")]
         public async Task StellarAdvisorCommand(InteractionContext context)
         {
-            await context.DeferAsync();
-
             var embedMessage = new DiscordEmbedBuilder
             {
                 Color = DiscordColor.Lilac,
                 Title = $"Stellar Advisor",
-                Description = $"Версія: {Program.BotConfig.Version}"
+                Description = $"Версія: {Program.BotConfig.Version}",
             };
 
-            await context.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(embedMessage));
+            await context.ResponseWithEmbedAsync(embedMessage);
         }
 
         [SlashCommand("checkusers", "Checking the users without the roles.")]
         public async Task CheckUsersWithoutRoles(InteractionContext context)
         {
-            await context.DeferAsync();
-
             var embedDescription = "Список користувачів:";
 
             if (context.Guild != null)
@@ -274,7 +297,7 @@ namespace StellarAdvisorCore.Commands
                 Description = embedDescription
             };
 
-            await context.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(embedMessage));
+            await context.ResponseWithEmbedAsync(embedMessage);
         }
     }
 }

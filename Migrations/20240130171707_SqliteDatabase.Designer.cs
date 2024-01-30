@@ -11,8 +11,8 @@ using StellarAdvisorCore.Context;
 namespace StellarAdvisorCore.Migrations
 {
     [DbContext(typeof(SqliteContext))]
-    [Migration("20240130091515_InitializeSqliteDB")]
-    partial class InitializeSqliteDB
+    [Migration("20240130171707_SqliteDatabase")]
+    partial class SqliteDatabase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -22,9 +22,9 @@ namespace StellarAdvisorCore.Migrations
 
             modelBuilder.Entity("StellarAdvisorCore.Models.MutedUser", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
                     b.Property<ulong>("MemberId")
                         .HasColumnType("INTEGER");

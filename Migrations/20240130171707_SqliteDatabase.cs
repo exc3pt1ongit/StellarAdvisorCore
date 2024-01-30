@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace StellarAdvisorCore.Migrations
 {
     /// <inheritdoc />
-    public partial class InitializeSqliteDB : Migration
+    public partial class SqliteDatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,8 +15,7 @@ namespace StellarAdvisorCore.Migrations
                 name: "MutedUsers",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     MemberId = table.Column<ulong>(type: "INTEGER", nullable: false),
                     MutedReason = table.Column<string>(type: "TEXT", nullable: true),
                     MutedExpiration = table.Column<DateTime>(type: "TEXT", nullable: false)

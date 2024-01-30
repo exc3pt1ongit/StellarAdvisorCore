@@ -21,10 +21,11 @@ internal class Program
 
         Client.UseInteractivity(new InteractivityConfiguration()
         {
-            Timeout = TimeSpan.FromMinutes(2)
+            Timeout = TimeSpan.FromMinutes(2),
         });
 
         Client.Ready += OnClientReady;
+        Client.ClientErrored += OnClientErrored;
         Client.GuildMemberAdded += OnNewMemberJoinedGuild;
 
         var commandsConfig = new CommandsNextConfiguration()
@@ -41,6 +42,13 @@ internal class Program
 
         await Client.ConnectAsync();
         await Task.Delay(-1);
+    }
+
+    private static Task OnClientErrored(DiscordClient sender, ClientErrorEventArgs e)
+    {
+        Logger.LogError($"Event: {e.EventName}\nException: {e.Exception}");
+        
+        return Task.CompletedTask;
     }
 
     private static Task OnNewMemberJoinedGuild(DiscordClient sender, GuildMemberAddEventArgs e)
