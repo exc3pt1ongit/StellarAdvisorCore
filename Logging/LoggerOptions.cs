@@ -20,6 +20,11 @@ namespace StellarAdvisorCore.Logging
         public string WarningColor { get; set; } = "#fac376";
 
         /// <summary>
+        /// Set color for success log function.
+        /// </summary>
+        public string SuccessColor { get; set; } = "#82d185";
+
+        /// <summary>
         /// Format the log message to send in future.
         /// </summary>
         /// <param name="message">Message to send using logging.</param>
