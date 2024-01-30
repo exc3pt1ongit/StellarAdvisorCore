@@ -1,0 +1,6 @@
+{
+  "token": "token",
+  "prefix": "!",
+  "mainGuildId": "guildId",
+  "unverifiedRoleId": "roleId"
+}
