@@ -6,7 +6,7 @@ namespace StellarAdvisorCore.Bot
 {
     public class BotConfig
     {
-        public string Version { get; set; } = "1.0.3-C";
+        public string Version { get; set; } = "1.0.3-D/Cron";
         public BotConfigStructure Values { get; set; } = new BotConfigStructure();
 
         public async Task Load(string configFile = "BotConfig.json")
