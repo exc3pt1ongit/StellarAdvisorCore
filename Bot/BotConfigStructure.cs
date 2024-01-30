@@ -6,5 +6,6 @@
         public string Prefix { get; set; } = "!";
         public ulong MainGuildId { get; set; }
         public ulong UnverifiedRoleId { get; set; }
+        public string? OpenSourceUrl { get; set; }
     }
 }

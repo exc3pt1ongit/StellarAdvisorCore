@@ -2,5 +2,6 @@
   "token": "token",
   "prefix": "!",
   "mainGuildId": "guildId",
-  "unverifiedRoleId": "roleId"
+  "unverifiedRoleId": "roleId",
+  "openSourceUrl": "github/url"
 }

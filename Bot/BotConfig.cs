@@ -6,7 +6,7 @@ namespace StellarAdvisorCore.Bot
 {
     public class BotConfig
     {
-        public string Version { get; set; } = "1.0.3-E/Cron";
+        public string Version { get; set; } = "1.0.4/Pre";
         public BotConfigStructure Values { get; set; } = new BotConfigStructure();
 
         public async Task Load(string configFile = "BotConfig.json")
@@ -22,6 +22,7 @@ namespace StellarAdvisorCore.Bot
                     Values.Prefix = data.Prefix;
                     Values.MainGuildId = data.MainGuildId;
                     Values.UnverifiedRoleId = data.UnverifiedRoleId;
+                    Values.OpenSourceUrl = data.OpenSourceUrl;
                 }
                 catch (Exception exception)
                 {
@@ -38,7 +39,7 @@ namespace StellarAdvisorCore.Bot
                 Token = Values.Token,
                 TokenType = TokenType.Bot,
                 AutoReconnect = true,
-                MinimumLogLevel = LogLevel.Debug // change in the future
+                MinimumLogLevel = LogLevel.Error // change in the future
             };
         }
     }

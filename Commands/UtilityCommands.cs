@@ -9,6 +9,7 @@ using StellarAdvisorCore.Logging;
 using StellarAdvisorCore.Models;
 using StellarAdvisorCore.Services;
 using StellarAdvisorCore.Extensions;
+using System;
 
 namespace StellarAdvisorCore.Commands
 {
@@ -256,18 +257,61 @@ namespace StellarAdvisorCore.Commands
 
         #endregion
 
-        [SlashCommand("stellaradvisor", "Getting the information about Stellar Advisor")]
-        public async Task StellarAdvisorCommand(InteractionContext context)
+        [RequireRoles(RoleCheckMode.MatchIds, 1199657930899853423)]
+        [SlashCommand("technical", "Getting the technical information about Stellar Advisor")]
+        public async Task GetTechnicalInformationCommand(InteractionContext context)
         {
             var embedMessage = new DiscordEmbedBuilder
             {
+                Title = "Stellar Advisor Bot - Технічні деталі",
                 Color = DiscordColor.Lilac,
-                Title = $"Stellar Advisor",
-                Description = $"Версія: {Program.BotConfig.Version}",
+                Description = "Технічні деталі про бота Stellar Advisor.",
+                Footer = new DiscordEmbedBuilder.EmbedFooter
+                {
+                    Text = "Stellar Advisor Bot - Технічні деталі"
+                }
             };
+
+            embedMessage.AddField("Версія бота", $"v{Program.BotConfig.Version}");
+            embedMessage.AddField("Пінг бота", $"{Program.Client.Ping} ms", true);
+
+            var totalUptime = DateTime.Now - Program.Uptime;
+
+            embedMessage.AddField("Uptime", $"{totalUptime.Days} днів, {totalUptime.Hours} годин, {totalUptime.Minutes} хвилин, {totalUptime.Seconds} секунд");
+
+            embedMessage.AddField("MachineName", $"{Environment.MachineName}", true);
+            embedMessage.AddField("Process Id", $"{Environment.ProcessId}", true);
+            embedMessage.AddField("Операційна система", $"{Environment.OSVersion.VersionString}");
+
+            embedMessage.AddField("Бібліотека", "DSharpPlus");
+            embedMessage.AddField("Мова програмування", "C# (.NET Core 8)", true);
+            embedMessage.AddField("Open-Source Code", $"[GitHub Repository]({Program.BotConfig.Values.OpenSourceUrl})");
 
             await context.ResponseWithEmbedAsync(embedMessage);
         }
+
+        // [SlashCommand("stellaradvisor", "Getting the information about Stellar Advisor")]
+        // public async Task StellarAdvisorCommand(InteractionContext context)
+        // {
+        //     var embedMessage = new DiscordEmbedBuilder
+        //     {
+        //         Title = "Stellar Advisor Bot",
+        //         Color = DiscordColor.Lilac,
+        //         Description = "Ваша надійна супутниця на RP сервері Minecraft. Послужниця імперії Аврора.",
+        //         Footer = new DiscordEmbedBuilder.EmbedFooter
+        //         {
+        //             Text = "Stellar Advisor Bot - Розробник @exc3pt1on"
+        //         }
+        //     };
+        // 
+        //     // embedMessage.AddField("Версія бота", $"v{Program.BotConfig.Version}");
+        //     // embedMessage.AddField("Система персонажів", "Створюйте та керуйте ігровими персонажами.", true);
+        //     // embedMessage.AddField("Система фракцій", "Створюйте, керуйте та станьте частиною різних фракцій.", true);
+        //     // embedMessage.AddField("Планування подій", "Плануйте та керуйте ігровими подіями для спільноти сервера. Отримуйте сповіщення про майбутні події.");
+        //     // embedMessage.AddField("Імперські новини", "Будьте в курсі загальносерверних оголошень та новин. Отримуйте оновлення про важливі події.", true);
+        // 
+        //     await context.ResponseWithEmbedAsync(embedMessage);
+        // }
 
         [SlashCommand("checkusers", "Checking the users without the roles.")]
         public async Task CheckUsersWithoutRoles(InteractionContext context)

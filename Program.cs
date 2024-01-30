@@ -13,6 +13,7 @@ internal class Program
     public static DiscordClient? Client { get; private set; }
     public static CommandsNextExtension? Commands { get; private set; }
     public static BotConfig BotConfig { get; private set; } = new BotConfig();
+    public static DateTime Uptime { get; private set; } = DateTime.Now;
     private static async Task Main(string[] args)
     {
         await BotConfig.Load();
@@ -61,8 +62,18 @@ internal class Program
     private static async Task OnClientReady(DiscordClient sender, ReadyEventArgs e)
     {
         Logger.Log($"Bot started successfully. Version: {BotConfig.Version}");
+
+        Console.WriteLine();
+
+        Logger.Log("Library: DSharpPlus (C# - .NET Core 8)");
+        Logger.Log($"Open-Source Code: {BotConfig.Values.OpenSourceUrl}");
+
+        await Console.Out.WriteLineAsync();
+
         Logger.Log($"MainGuildId: {BotConfig.Values.MainGuildId}");
         Logger.Log($"Role for unverified users: {BotConfig.Values.UnverifiedRoleId}");
+
+        await Console.Out.WriteLineAsync();
 
         foreach (var guild in sender.Guilds)
         {
