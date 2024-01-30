@@ -22,22 +22,29 @@ namespace StellarAdvisorCore.Commands
         {
             Logger.Log("Manual command migrating");
 
-            await using SqliteContext sqlite = new SqliteContext();
-
-            if (sqlite.Database.GetPendingMigrationsAsync().Result.Any())
+            try
             {
-                await sqlite.Database.MigrateAsync();
-            }
+                await using SqliteContext sqlite = new SqliteContext();
 
-            var embedMessage = new DiscordEmbedBuilder
+                if (sqlite.Database.GetPendingMigrationsAsync().Result.Any())
+                {
+                    await Logger.LogWarningAsync("Inside the if");
+                    await sqlite.Database.MigrateAsync();
+                }
+
+                var embedMessage = new DiscordEmbedBuilder
+                {
+                    Color = DiscordColor.Lilac,
+                    Title = "Міграція бази даних",
+                    Description = "Базу даних Sqlite успішно мігровано."
+                };
+
+                await context.ResponseWithEmbedAsync(embedMessage);
+                await Logger.LogSuccessAsync("Sqlite Migration complete");
+            } catch (Exception ex)
             {
-                Color = DiscordColor.Lilac,
-                Title = "Міграція бази даних",
-                Description = "Базу даних Sqlite успішно мігровано."
-            };
-
-            await context.ResponseWithEmbedAsync(embedMessage);
-            await Logger.LogSuccessAsync("Sqlite Migration complete");
+                await Logger.LogErrorAsync(ex.Message);
+            }   
         }
 
         [SlashCommand("addmute", "Testing Facility -> Pseudo muting member")]
@@ -50,7 +57,8 @@ namespace StellarAdvisorCore.Commands
             {
                 MemberId = (ulong)memberId,
                 MutedReason = mutedReason,
-                MutedExpiration = DateTime.Now.AddDays(mutedDays)
+                MutedExpiration = DateTime.Now.AddDays(mutedDays),
+                MutedById = context.Member.Id,
             };
 
             using (SqliteContext sqlite = new SqliteContext())

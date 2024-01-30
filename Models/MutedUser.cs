@@ -5,5 +5,6 @@
         public ulong MemberId { get; set; }
         public string? MutedReason { get; set; }
         public DateTime MutedExpiration { get; set; }
+        public ulong MutedById { get; set; }
     }
 }

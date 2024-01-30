@@ -11,7 +11,7 @@ using StellarAdvisorCore.Context;
 namespace StellarAdvisorCore.Migrations
 {
     [DbContext(typeof(SqliteContext))]
-    [Migration("20240130171707_SqliteDatabase")]
+    [Migration("20240130175656_SqliteDatabase")]
     partial class SqliteDatabase
     {
         /// <inheritdoc />
@@ -27,6 +27,9 @@ namespace StellarAdvisorCore.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<ulong>("MemberId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("MutedById")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("MutedExpiration")
