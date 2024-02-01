@@ -1,4 +1,4 @@
-﻿namespace StellarAdvisorCore.Models
+﻿namespace StellarAdvisorCore.Data.Models
 {
     public class MutedUser : Entity
     {

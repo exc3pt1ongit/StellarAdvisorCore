@@ -1,15 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 
-using StellarAdvisorCore.Context;
 using StellarAdvisorCore.Logging;
-using StellarAdvisorCore.Models;
+using StellarAdvisorCore.Data.Models;
 using StellarAdvisorCore.Services;
 using StellarAdvisorCore.Extensions;
-using System;
+using StellarAdvisorCore.Data.Context;
 
 namespace StellarAdvisorCore.Commands
 {
@@ -17,36 +15,85 @@ namespace StellarAdvisorCore.Commands
     {
         private readonly UtilityService _utilityService = new UtilityService();
 
-        [RequireOwner]
-        [SlashCommand("migrate", "Migrates the database")]
-        public async Task MigrateSqliteCommand(InteractionContext context)
+        #region Testing Facility (localization)
+
+        [SlashCommand("folder_locale", "Check localization functionality (folders)")]
+        public async Task FolderLocalizationCheckCommand(InteractionContext context,
+            [Option("languageCode", "Language code")] string languageCode)
         {
-            Logger.Log("Manual command migrating");
+            var localizationFiles = Directory.GetFiles($"Localization\\{languageCode}");
 
-            try
+            var embedMessage = new DiscordEmbedBuilder
             {
-                await using SqliteContext sqlite = new SqliteContext();
+                Color = DiscordColor.Lilac,
+                Title = $"Language code: {languageCode}",
+                Description = $"{localizationFiles.Count()}"
+            };
 
-                if (sqlite.Database.GetPendingMigrationsAsync().Result.Any())
+            foreach (var file in localizationFiles)
+            {
+                await Logger.LogAsync($"file: {file}");
+            }
+
+            await context.ResponseWithEmbedAsync(embedMessage);
+        }
+
+        [SlashCommand("locale", "Check localization functionality")]
+        public async Task CheckLocalizationCommand(InteractionContext context,
+            [Option("languageCode", "Language code")] string languageCode)
+        {
+            var embedMessage = new DiscordEmbedBuilder
+            {
+                Color = DiscordColor.Lilac,
+                Title = $"Language code: {languageCode}",
+                Description = $"GetLocalizedString(string \"{languageCode}\"): {LocalizationService.GetLocalizedString(languageCode, "greeting")}\n" +
+                $"{LocalizationService.GetLocalizedString(languageCode, "cmd_migrate")}"
+            };
+
+            await context.ResponseWithEmbedAsync(embedMessage);
+        }
+        #endregion
+
+        #region Testing Facility (mutes)
+
+        [SlashCommand("checkusers", "Checking the users without the roles.")]
+        public async Task CheckUsersWithoutRoles(InteractionContext context)
+        {
+            var embedDescription = "Список користувачів:";
+
+            if (context.Guild != null)
+            {
+                var membersWithoutRoles = context.Guild.Members
+                    .Where(m => m.Value.Roles.Count() <= 0 || m.Value.Roles == null);
+
+                if (membersWithoutRoles.Any())
                 {
-                    await Logger.LogWarningAsync("Inside the if");
-                    await sqlite.Database.MigrateAsync();
-                    await sqlite.SaveChangesAsync();
+                    foreach (var member in membersWithoutRoles)
+                    {
+                        Logger.Log(member.Value.Username);
+
+                        embedDescription += $"\n{member.Value.Mention}, на сервері з {member.Value.JoinedAt.ToLocalTime().ToString("dd/MM/yyyy, HH:mm") ?? "Невідома дата приєднання"}";
+                    }
                 }
-
-                var embedMessage = new DiscordEmbedBuilder
+                else
                 {
-                    Color = DiscordColor.Lilac,
-                    Title = "Міграція бази даних",
-                    Description = "Базу даних Sqlite успішно мігровано."
-                };
-
-                await context.ResponseWithEmbedAsync(embedMessage);
-                await Logger.LogSuccessAsync("Sqlite Migration complete");
-            } catch (Exception ex)
+                    embedDescription = "У всіх користувачів є ролі.";
+                }
+            }
+            else
             {
-                await Logger.LogErrorAsync(ex.Message);
-            }   
+                Logger.LogError("Main guild not found.");
+                embedDescription = "Головний сервер не налаштовано.";
+            }
+
+            var embedMessage = new DiscordEmbedBuilder
+            {
+                Color = DiscordColor.Lilac,
+                Title = "Користувачі без жодної ролі",
+                Description = embedDescription
+            };
+
+            await context.ResponseWithEmbedAsync(embedMessage);
         }
 
         [SlashCommand("addmute", "Testing Facility -> Pseudo muting member")]
@@ -152,6 +199,8 @@ namespace StellarAdvisorCore.Commands
             }
         }
 
+        #endregion
+
         [SlashCommand("getuserswithrole", "Get users with a specific role")]
         public async Task GetUsersWithRole(InteractionContext context,
         [Option("role", "The role to search for")] string roleInput)
@@ -178,23 +227,6 @@ namespace StellarAdvisorCore.Commands
                 Color = DiscordColor.Lilac,
                 Title = $"Користувачі з групою: {role.Name}",
                 Description = usersList
-            };
-
-            await context.ResponseWithEmbedAsync(embedMessage);
-        }
-
-        [SlashCommand("unverified", "Get role for unverified users.")]
-        public async Task GetRoleForUnverifiedUsers(InteractionContext context)
-        {
-            var role = context.Guild.GetRole(Program.BotConfig.Values.UnverifiedRoleId);
-
-            var embedMessage = new DiscordEmbedBuilder
-            {
-                Color = DiscordColor.Lilac,
-                Title = "Роль для непідтверджених користувачів",
-                Description = $"Id: {role.Id}\n" +
-                $"Назва ролі: {role.Name}\n" +
-                $"Колір ролі: {role.Color}"
             };
 
             await context.ResponseWithEmbedAsync(embedMessage);
@@ -256,101 +288,5 @@ namespace StellarAdvisorCore.Commands
         }
 
         #endregion
-
-        [RequireRoles(RoleCheckMode.MatchIds, 1199657930899853423)]
-        [SlashCommand("technical", "Getting the technical information about Stellar Advisor")]
-        public async Task GetTechnicalInformationCommand(InteractionContext context)
-        {
-            var embedMessage = new DiscordEmbedBuilder
-            {
-                Title = "Stellar Advisor Bot - Технічні деталі",
-                Color = DiscordColor.Lilac,
-                Description = "Технічні деталі про бота Stellar Advisor.",
-                Footer = new DiscordEmbedBuilder.EmbedFooter
-                {
-                    Text = "Stellar Advisor Bot - Технічні деталі"
-                }
-            };
-
-            embedMessage.AddField("Версія бота", $"v{Program.BotConfig.Version}");
-            embedMessage.AddField("Пінг бота", $"{Program.Client.Ping} ms", true);
-
-            var totalUptime = DateTime.Now - Program.Uptime;
-
-            embedMessage.AddField("Uptime", $"{totalUptime.Days} днів, {totalUptime.Hours} годин, {totalUptime.Minutes} хвилин, {totalUptime.Seconds} секунд");
-
-            embedMessage.AddField("MachineName", $"{Environment.MachineName}", true);
-            embedMessage.AddField("Process Id", $"{Environment.ProcessId}", true);
-            embedMessage.AddField("Операційна система", $"{Environment.OSVersion.VersionString}");
-
-            embedMessage.AddField("Бібліотека", "DSharpPlus");
-            embedMessage.AddField("Мова програмування", "C# (.NET Core 8)", true);
-            embedMessage.AddField("Open-Source Code", $"[GitHub Repository]({Program.BotConfig.Values.OpenSourceUrl})");
-
-            await context.ResponseWithEmbedAsync(embedMessage);
-        }
-
-        // [SlashCommand("stellaradvisor", "Getting the information about Stellar Advisor")]
-        // public async Task StellarAdvisorCommand(InteractionContext context)
-        // {
-        //     var embedMessage = new DiscordEmbedBuilder
-        //     {
-        //         Title = "Stellar Advisor Bot",
-        //         Color = DiscordColor.Lilac,
-        //         Description = "Ваша надійна супутниця на RP сервері Minecraft. Послужниця імперії Аврора.",
-        //         Footer = new DiscordEmbedBuilder.EmbedFooter
-        //         {
-        //             Text = "Stellar Advisor Bot - Розробник @exc3pt1on"
-        //         }
-        //     };
-        // 
-        //     // embedMessage.AddField("Версія бота", $"v{Program.BotConfig.Version}");
-        //     // embedMessage.AddField("Система персонажів", "Створюйте та керуйте ігровими персонажами.", true);
-        //     // embedMessage.AddField("Система фракцій", "Створюйте, керуйте та станьте частиною різних фракцій.", true);
-        //     // embedMessage.AddField("Планування подій", "Плануйте та керуйте ігровими подіями для спільноти сервера. Отримуйте сповіщення про майбутні події.");
-        //     // embedMessage.AddField("Імперські новини", "Будьте в курсі загальносерверних оголошень та новин. Отримуйте оновлення про важливі події.", true);
-        // 
-        //     await context.ResponseWithEmbedAsync(embedMessage);
-        // }
-
-        [SlashCommand("checkusers", "Checking the users without the roles.")]
-        public async Task CheckUsersWithoutRoles(InteractionContext context)
-        {
-            var embedDescription = "Список користувачів:";
-
-            if (context.Guild != null)
-            {
-                var membersWithoutRoles = context.Guild.Members
-                    .Where(m => m.Value.Roles.Count() <= 0 || m.Value.Roles == null);
-
-                if (membersWithoutRoles.Any())
-                {
-                    foreach (var member in membersWithoutRoles)
-                    {
-                        Logger.Log(member.Value.Username);
-
-                        embedDescription += $"\n{member.Value.Mention}, на сервері з {member.Value.JoinedAt.ToLocalTime().ToString("dd/MM/yyyy, HH:mm") ?? "Невідома дата приєднання"}";
-                    }
-                }
-                else
-                {
-                    embedDescription = "У всіх користувачів є ролі.";
-                }
-            }
-            else
-            {
-                Logger.LogError("Main guild not found.");
-                embedDescription = "Головний сервер не налаштовано.";
-            }
-
-            var embedMessage = new DiscordEmbedBuilder
-            {
-                Color = DiscordColor.Lilac,
-                Title = "Користувачі без жодної ролі",
-                Description = embedDescription
-            };
-
-            await context.ResponseWithEmbedAsync(embedMessage);
-        }
     }
 }

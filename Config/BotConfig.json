@@ -3,5 +3,7 @@
   "prefix": "!",
   "mainGuildId": "guildId",
   "unverifiedRoleId": "roleId",
-  "openSourceUrl": "github/url"
+  "openSourceUrl": "github/url",
+  "clientLocalization": "client/locale",
+  "serverLocalization": "server/locale"
 }

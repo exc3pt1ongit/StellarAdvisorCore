@@ -1,12 +1,13 @@
 ﻿using DSharpPlus;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using StellarAdvisorCore.Logging;
 
 namespace StellarAdvisorCore.Bot
 {
     public class BotConfig
     {
-        public string Version { get; set; } = "1.0.4/Pre";
+        public string Version { get; set; } = "1.1.0/Alpha";
         public BotConfigStructure Values { get; set; } = new BotConfigStructure();
 
         public async Task Load(string configFile = "BotConfig.json")
@@ -18,11 +19,20 @@ namespace StellarAdvisorCore.Bot
                     var json = await streamReader.ReadToEndAsync();
                     var data = JsonConvert.DeserializeObject<BotConfigStructure>(json);
 
+                    if(data == null)
+                    {
+                        await Logger.LogErrorAsync("The JSON load data is NULL");
+
+                        return;
+                    }
+
                     Values.Token = data.Token;
                     Values.Prefix = data.Prefix;
                     Values.MainGuildId = data.MainGuildId;
                     Values.UnverifiedRoleId = data.UnverifiedRoleId;
                     Values.OpenSourceUrl = data.OpenSourceUrl;
+                    Values.ClientLocalization = data.ClientLocalization;
+                    Values.ServerLocalization = data.ServerLocalization;
                 }
                 catch (Exception exception)
                 {

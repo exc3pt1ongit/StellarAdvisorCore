@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace StellarAdvisorCore.Models
+namespace StellarAdvisorCore.Data.Models
 {
     public abstract class Entity
     {

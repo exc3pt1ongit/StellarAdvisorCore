@@ -1,6 +1,7 @@
 ﻿using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
+using StellarAdvisorCore.Extensions;
 using StellarAdvisorCore.Services;
 
 namespace StellarAdvisorCore.Commands
@@ -12,8 +13,6 @@ namespace StellarAdvisorCore.Commands
         [SlashCommand("createcharacter", "Створити ігрового персонажа")]
         public async Task CreateCharacterCommand(InteractionContext context)
         {
-            await context.DeferAsync();
-
             var embedMessage = new DiscordEmbedBuilder
             {
                 Color = DiscordColor.Lilac,
@@ -21,7 +20,7 @@ namespace StellarAdvisorCore.Commands
                 Description = "Розробка створення ігрового персонажа для майнкрафт сервера Ficture Story."
             };
 
-            await context.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(embedMessage));
+            await context.ResponseWithEmbedAsync(embedMessage);
         }
     }
 }

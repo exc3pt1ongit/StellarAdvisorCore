@@ -3,7 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using StellarAdvisorCore.Context;
+using StellarAdvisorCore.Data.Context;
 
 #nullable disable
 
@@ -17,7 +17,33 @@ namespace StellarAdvisorCore.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.1");
 
-            modelBuilder.Entity("StellarAdvisorCore.Models.MutedUser", b =>
+            modelBuilder.Entity("StellarAdvisorCore.Data.Models.Entities.Characters.Character", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<ulong>("DiscordUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Faction")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FactionRole")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Settlement")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Characters");
+                });
+
+            modelBuilder.Entity("StellarAdvisorCore.Data.Models.MutedUser", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
