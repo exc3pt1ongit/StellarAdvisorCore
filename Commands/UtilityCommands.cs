@@ -201,6 +201,8 @@ namespace StellarAdvisorCore.Commands
 
         #endregion
 
+        #region Testing Facility (roles)
+
         [SlashCommand("getuserswithrole", "Get users with a specific role")]
         public async Task GetUsersWithRole(InteractionContext context,
         [Option("role", "The role to search for")] string roleInput)
@@ -231,6 +233,8 @@ namespace StellarAdvisorCore.Commands
 
             await context.ResponseWithEmbedAsync(embedMessage);
         }
+
+        #endregion
 
         #region ModpackCommand
 
@@ -288,5 +292,17 @@ namespace StellarAdvisorCore.Commands
         }
 
         #endregion
+
+        [SlashCommand("check_error", "Тестування ембеда-помилки")]
+        public async Task CheckErrorCommand(InteractionContext context)
+        {
+            await context.ResponseWithErrorEmbedAsync("Тестування ембеда-помилки у інтерфейсі діскорда.");
+        }
+
+        [SlashCommand("check_success", "Тестування ембеда-успіху")]
+        public async Task CheckSuccessCommand(InteractionContext context)
+        {
+            await context.ResponseWithSuccessEmbedAsync("Тестування ембеда-успіху у інтерфейсі діскорда.");
+        }
     }
 }

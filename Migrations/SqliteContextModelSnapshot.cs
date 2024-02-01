@@ -38,9 +38,28 @@ namespace StellarAdvisorCore.Migrations
                     b.Property<string>("Settlement")
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid?>("SettlementBaseId")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("SettlementBaseId");
+
                     b.ToTable("Characters");
+                });
+
+            modelBuilder.Entity("StellarAdvisorCore.Data.Models.Entities.Settlements.SettlementBase", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Settlements");
                 });
 
             modelBuilder.Entity("StellarAdvisorCore.Data.Models.MutedUser", b =>
@@ -67,6 +86,18 @@ namespace StellarAdvisorCore.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("MutedUsers");
+                });
+
+            modelBuilder.Entity("StellarAdvisorCore.Data.Models.Entities.Characters.Character", b =>
+                {
+                    b.HasOne("StellarAdvisorCore.Data.Models.Entities.Settlements.SettlementBase", null)
+                        .WithMany("Residents")
+                        .HasForeignKey("SettlementBaseId");
+                });
+
+            modelBuilder.Entity("StellarAdvisorCore.Data.Models.Entities.Settlements.SettlementBase", b =>
+                {
+                    b.Navigation("Residents");
                 });
 #pragma warning restore 612, 618
         }

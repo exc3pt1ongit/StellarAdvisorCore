@@ -89,7 +89,7 @@ namespace StellarAdvisorCore.Services
                             Program.Localizations[languageCode][kvp.Key] = kvp.Value;
                         }
 
-                        await Logger.LogSuccessAsync($"{file} loaded successfully");
+                        await Logger.LogAsync($"{file} loaded successfully");
                     }
                     catch (Exception ex)
                     {

@@ -1,13 +1,13 @@
 ﻿using DSharpPlus;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using StellarAdvisorCore.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace StellarAdvisorCore.Bot
 {
     public class BotConfig
     {
-        public string Version { get; set; } = "1.1.0/Alpha";
+        public string Version { get; set; } = "1.1.1/Bravo";
         public BotConfigStructure Values { get; set; } = new BotConfigStructure();
 
         public async Task Load(string configFile = "BotConfig.json")

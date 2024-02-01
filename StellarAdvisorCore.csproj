@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <Folder Include="Config\" />
+    <Folder Include="Data\Models\Entities\Fractions\" />
   </ItemGroup>
 
 </Project>
