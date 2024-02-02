@@ -1,5 +1,5 @@
 ﻿using StellarAdvisorCore.Data.Context;
-using StellarAdvisorCore.Data.Models.Entities.Characters;
+using StellarAdvisorCore.Data.Models.Entities.Fractions;
 using StellarAdvisorCore.Data.Models.Entities.Settlements;
 using StellarAdvisorCore.Logging;
 
@@ -11,9 +11,7 @@ namespace StellarAdvisorCore.Data
             new Lazy<World>(() => new World());
 
         public static World Instance { get { return instance.Value; } }
-
-        public List<Character>? Characters { get; private set; }
-        public List<SettlementBase>? Settlements { get; private set; }
+        public List<Settlement>? Settlements { get; private set; }
 
         private World()
         {
@@ -21,17 +19,28 @@ namespace StellarAdvisorCore.Data
             {
                 try
                 {
-                    Settlements = new List<SettlementBase>()
+                    Settlements = new List<Settlement>()
                     {
-                        new AuroraEmpire()
+                        new Settlement("Aurora Empire", new List<FractionBase>()
+                        {
+                            new FractionBase("Aurora Empire Rangers"),
+                            new FractionBase("Aurora Empire Guard")
+                        })
                     };
 
-                    Characters = sqlite.Characters.ToList();
-                    Logger.LogSuccess($"World: {Characters.Count} characters successfully loaded");
+                    var characters = sqlite.Characters.ToList();
+                    Logger.LogSuccess($"World: {characters.Count} characters successfully loaded");
 
                     foreach (var settlement in Settlements)
                     {
                         settlement.LoadResidents();
+
+                        if (settlement.Fractions == null) continue;
+                        foreach (var fraction in settlement.Fractions)
+                        {
+                            fraction.Settlement = settlement;
+                            fraction.LoadMembers();
+                        }
                     }
                 }
                 catch (Exception e)
