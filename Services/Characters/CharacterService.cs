@@ -3,8 +3,6 @@ using DSharpPlus.SlashCommands;
 
 using StellarAdvisorCore.Extensions;
 using StellarAdvisorCore.Services.Localization;
-
-using StellarAdvisorCore.Data.Context;
 using StellarAdvisorCore.Data.Repository.Characters;
 using StellarAdvisorCore.Data.Models.Entities.Characters;
 
@@ -21,9 +19,20 @@ namespace StellarAdvisorCore.Services.Characters
             _localizationService = localizationService;
         }
 
-        public async Task<Character> CreateCharacter(DiscordUser discordUser, string name) => await _characterRepository.CreateCharacter(discordUser, name);
-        public async Task<bool> UpdateCharacter(Character character) => await _characterRepository.UpdateCharacter(character);
-        public async Task<bool> DeleteCharacter(string characterName) => await _characterRepository.DeleteCharacter(characterName);
+        public async Task<Character> CreateCharacter(DiscordUser discordUser, string name)
+        {
+            return await _characterRepository.CreateCharacter(discordUser, name);
+        }
+
+        public async Task<bool> UpdateCharacter(Character character)
+        {
+            return await _characterRepository.UpdateCharacter(character);
+        }
+
+        public async Task<bool> DeleteCharacter(string characterName)
+        {
+            return await _characterRepository.DeleteCharacter(characterName);
+        }
 
         public async Task<DiscordEmbed> GetCharacterInformationEmbed(InteractionContext context, string characterName)
         {
@@ -46,24 +55,19 @@ namespace StellarAdvisorCore.Services.Characters
                     .GetClientLocalizedString("ch_error_ooc_user_is_null"));
             }
 
-            // TODO: refactor topside code in this function
+            var mention = oocUser.Mention;
 
-            var characterSettlement = _characterRepository.GetCharacterSettlementName(characterName);
-            var characterFraction = _characterRepository.GetCharacterFractionName(characterName);
-            var characterFractionRole = _characterRepository.GetCharacterFractionRoleName(characterName);
+            var settlement = string.IsNullOrEmpty(character?.Settlement) ? "Невідоме" : character?.Settlement;
+            var fraction = string.IsNullOrEmpty(character?.Faction) ? _localizationService.GetClientLocalizedString("ch_not_in_the_fraction") : character?.Faction;
 
-            var embedMessage = new DiscordEmbedBuilder
+            return new DiscordEmbedBuilder()
             {
                 Color = DiscordColor.Lilac,
-                Title = $":family_mwg: Інформація про персонажа: {characterName}",
-                Description = $"Розробка створення ігрового персонажа для майнкрафт сервера Ficture Story."
+                Title = _localizationService.GetClientLocalizedString("ch_info_about_character").Replace("{characterName}", character?.Name),
+                Description = $"OOC користувач: {mention}\n" +
+                $"Поселення: {settlement}\n" +
+                $"Фракція: {fraction}"
             };
-
-            embedMessage.AddField(":homes: - Поселення", characterSettlement, true);
-            embedMessage.AddField(":construction_worker: - Фракція", characterFraction, true);
-            embedMessage.AddField(":farmer: - Роль у фракції", characterFractionRole, true);
-
-            return embedMessage;
         }
     }
 }

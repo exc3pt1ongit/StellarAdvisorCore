@@ -7,7 +7,7 @@
         string? Name { get; set;  }
         string? Settlement { get; set; }
 
-        string? Fraction { get; set; }
-        string? FractionRole { get; set; }
+        string? Faction { get; set; }
+        string? FactionRole { get; set; }
     }
 }

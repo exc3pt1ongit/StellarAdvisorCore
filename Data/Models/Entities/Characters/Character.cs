@@ -8,7 +8,7 @@ namespace StellarAdvisorCore.Data.Models.Entities.Characters
 
         public string? Name { get; set; }
         public string? Settlement { get; set; }
-        public string? Fraction { get; set; }
-        public string? FractionRole { get; set; }
+        public string? Faction { get; set; }
+        public string? FactionRole { get; set; }
     }
 }
