@@ -1,17 +1,19 @@
 ﻿using DSharpPlus.Entities;
-using StellarAdvisorCore.Services;
+using StellarAdvisorCore.Data.Repository.Localization;
+using StellarAdvisorCore.Services.Localization;
 
 namespace StellarAdvisorCore.Extensions
 {
     public static class DiscordEmbedBuilderExtensions
     {
+        private static readonly ILocalizationService _localizationService = new LocalizationService(new LocalizationRepository());
 
         public static DiscordEmbed GetSuccessEmbed(this DiscordEmbedBuilder _discordEmbedBuilder, string successContent)
         {
             return new DiscordEmbedBuilder
             {
                 Color = new DiscordColor(0x5EC20A),
-                Title = LocalizationService.GetClientLocalizedString("ext_success_during_execution"),
+                Title = _localizationService.GetClientLocalizedString("ext_success_during_execution"),
                 Description = successContent
             };
         }
@@ -31,7 +33,7 @@ namespace StellarAdvisorCore.Extensions
             return new DiscordEmbedBuilder
             {
                 Color = new DiscordColor(0xDB5353),
-                Title = LocalizationService.GetClientLocalizedString("ext_error_during_execution"),
+                Title = _localizationService.GetClientLocalizedString("ext_error_during_execution"),
                 Description = errorContent
             };
         }

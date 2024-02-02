@@ -4,55 +4,22 @@ using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 
 using StellarAdvisorCore.Logging;
-using StellarAdvisorCore.Data.Models;
 using StellarAdvisorCore.Services;
 using StellarAdvisorCore.Extensions;
+using StellarAdvisorCore.Data.Models;
 using StellarAdvisorCore.Data.Context;
+using StellarAdvisorCore.Services.Localization;
+using StellarAdvisorCore.Data.Repository.Localization;
+using StellarAdvisorCore.Services.Modpack;
+using StellarAdvisorCore.Data.Repository.Modpack;
 
 namespace StellarAdvisorCore.Commands
 {
     public class UtilityCommands : ApplicationCommandModule
     {
         private readonly UtilityService _utilityService = new UtilityService();
-
-        #region Testing Facility (localization)
-
-        [SlashCommand("folder_locale", "Check localization functionality (folders)")]
-        public async Task FolderLocalizationCheckCommand(InteractionContext context,
-            [Option("languageCode", "Language code")] string languageCode)
-        {
-            var localizationFiles = Directory.GetFiles($"Localization\\{languageCode}");
-
-            var embedMessage = new DiscordEmbedBuilder
-            {
-                Color = DiscordColor.Lilac,
-                Title = $"Language code: {languageCode}",
-                Description = $"{localizationFiles.Count()}"
-            };
-
-            foreach (var file in localizationFiles)
-            {
-                await Logger.LogAsync($"file: {file}");
-            }
-
-            await context.ResponseWithEmbedAsync(embedMessage);
-        }
-
-        [SlashCommand("locale", "Check localization functionality")]
-        public async Task CheckLocalizationCommand(InteractionContext context,
-            [Option("languageCode", "Language code")] string languageCode)
-        {
-            var embedMessage = new DiscordEmbedBuilder
-            {
-                Color = DiscordColor.Lilac,
-                Title = $"Language code: {languageCode}",
-                Description = $"GetLocalizedString(string \"{languageCode}\"): {LocalizationService.GetLocalizedString(languageCode, "greeting")}\n" +
-                $"{LocalizationService.GetLocalizedString(languageCode, "cmd_migrate")}"
-            };
-
-            await context.ResponseWithEmbedAsync(embedMessage);
-        }
-        #endregion
+        private readonly ILocalizationService _localizationService = new LocalizationService(new LocalizationRepository());
+        private readonly IModpackService _modpackService = new ModpackService(new ModpackRepository(), new LocalizationService(new LocalizationRepository()));
 
         #region Testing Facility (mutes)
 
@@ -236,73 +203,11 @@ namespace StellarAdvisorCore.Commands
 
         #endregion
 
-        #region ModpackCommand
+        #region Testing Facility (modpack)
 
-        [SlashCommand("modpack", "Get information about actual server modpack.")]
-        public async Task GetModpackSlashCommand(InteractionContext context)
-        {
-            try
-            {
-                ulong guildId = 1153809293267701840;
-                ulong channelId = 1160880734521806959;
-                ulong messageId = 1161620016739909714;
-
-                if (Program.Client == null)
-                {
-                    await context.ResponseWithMessageAsync("Клієнт не налаштовано. Зверніться до технічного адміністратора");
-                    return;
-                }
-
-                var guild = await Program.Client.GetGuildAsync(guildId);
-                await Console.Out.WriteLineAsync(guild.Name);
-
-                var channel = guild.GetChannel(channelId);
-                await Console.Out.WriteLineAsync(channel.Name);
-
-                var message = await channel.GetMessageAsync(messageId);
-
-                if (message != null)
-                {
-                    var messageEmbeds = message.Embeds;
-
-                    foreach (var embed in messageEmbeds)
-                    {
-                        Logger.Log(embed.Description);
-                    }
-
-                    var embedMessage = new DiscordEmbedBuilder
-                    {
-                        Title = $"Оригінальне повідомлення від {message.Author.Username}",
-                        Description = $"{message.Content}\n\nTimestamp: {message.Timestamp}",
-                        Color = DiscordColor.Lilac
-                    };
-
-                    await context.ResponseWithEmbedAsync(embedMessage);
-                }
-                else
-                {
-                    await context.ResponseWithMessageAsync("Повідомлення не знайдено");
-                }
-            }
-            catch (Exception ex)
-            {
-                await Logger.LogErrorAsync($"Error: {ex.Message}");
-                await context.ResponseWithMessageAsync("Під час обробки запиту виникла помилка");
-            }
-        }
+        [SlashCommand("modpack", "Дізнатися інформацію про актуальний модпак")]
+        public async Task GetModpackSlashCommand(InteractionContext context) => await context.ResponseWithEmbedAsync(await _modpackService.GetModpackInformationEmbed(context));
 
         #endregion
-
-        [SlashCommand("check_error", "Тестування ембеда-помилки")]
-        public async Task CheckErrorCommand(InteractionContext context)
-        {
-            await context.ResponseWithErrorEmbedAsync("Тестування ембеда-помилки у інтерфейсі діскорда.");
-        }
-
-        [SlashCommand("check_success", "Тестування ембеда-успіху")]
-        public async Task CheckSuccessCommand(InteractionContext context)
-        {
-            await context.ResponseWithSuccessEmbedAsync("Тестування ембеда-успіху у інтерфейсі діскорда.");
-        }
     }
 }

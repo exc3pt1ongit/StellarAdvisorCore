@@ -3,7 +3,7 @@ using StellarAdvisorCore.Logging;
 using StellarAdvisorCore.Data.Context;
 using StellarAdvisorCore.Data.Models.Entities.Characters;
 
-namespace StellarAdvisorCore.Data.Repository
+namespace StellarAdvisorCore.Data.Repository.Characters
 {
     internal class CharacterRepository : ICharacterRepository
     {
@@ -21,7 +21,7 @@ namespace StellarAdvisorCore.Data.Repository
             using (SqliteContext sqlite = new SqliteContext())
             {
                 sqlite.Characters.Add(character);
-                World.Characters?.Add(character);
+                World.Instance.Characters?.Add(character);
 
                 await sqlite.SaveChangesAsync();
                 Logger.LogSuccess($"Character: {character.Name} [id: {character.DiscordUserId}] added successfully");

@@ -7,8 +7,9 @@ using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.SlashCommands;
 using StellarAdvisorCore.Commands;
 using StellarAdvisorCore.Logging;
-using StellarAdvisorCore.Services;
 using StellarAdvisorCore.Data;
+using StellarAdvisorCore.Services.Localization;
+using StellarAdvisorCore.Data.Repository.Localization;
 
 internal class Program
 {
@@ -74,8 +75,10 @@ internal class Program
         await Logger.LogAsync("Library: DSharpPlus (C# - .NET Core 8)");
         await Logger.LogAsync($"Open-Source Code: {BotConfig.Values.OpenSourceUrl}");
 
-        await LocalizationService.LoadLocalizationAsync(BotConfig.Values.ServerLocalization ?? "unload");
-        await LocalizationService.LoadLocalizationAsync(BotConfig.Values.ClientLocalization ?? "unload");
+        ILocalizationService localizationService = new LocalizationService(new LocalizationRepository());
+
+        await localizationService.LoadLocalizationAsync(BotConfig.Values.ServerLocalization ?? "unload");
+        await localizationService.LoadLocalizationAsync(BotConfig.Values.ClientLocalization ?? "unload");
 
         foreach (var guild in sender.Guilds)
         {
@@ -89,6 +92,6 @@ internal class Program
             }
         }
 
-        World.Load();
+        var world = World.Instance;
     }
 }

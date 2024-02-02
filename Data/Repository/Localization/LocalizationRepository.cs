@@ -1,11 +1,11 @@
 ﻿using Newtonsoft.Json;
 using StellarAdvisorCore.Logging;
 
-namespace StellarAdvisorCore.Services
+namespace StellarAdvisorCore.Data.Repository.Localization
 {
-    public static class LocalizationService
+    public class LocalizationRepository : ILocalizationRepository
     {
-        public static void LoadLocalization(string languageCode)
+        public void LoadLocalization(string languageCode)
         {
             if (languageCode.Equals("unload"))
             {
@@ -31,14 +31,10 @@ namespace StellarAdvisorCore.Services
                         }
 
                         if (!Program.Localizations.ContainsKey(languageCode))
-                        {
                             Program.Localizations[languageCode] = new Dictionary<string, string>();
-                        }
 
                         foreach (var kvp in localization)
-                        {
                             Program.Localizations[languageCode][kvp.Key] = kvp.Value;
-                        }
 
                         Logger.LogSuccess($"{file} loaded successfully");
                     }
@@ -54,9 +50,9 @@ namespace StellarAdvisorCore.Services
             }
         }
 
-        public static async Task LoadLocalizationAsync(string languageCode)
+        public async Task LoadLocalizationAsync(string languageCode)
         {
-            if(languageCode.Equals("unload"))
+            if (languageCode.Equals("unload"))
             {
                 Logger.LogError("Unloading undefined localization");
                 return;
@@ -64,9 +60,9 @@ namespace StellarAdvisorCore.Services
 
             var filesPath = Directory.GetFiles($"Localization\\{languageCode}");
 
-            foreach(var file in filesPath)
+            foreach (var file in filesPath)
             {
-                if(File.Exists(file))
+                if (File.Exists(file))
                 {
                     try
                     {
@@ -103,11 +99,11 @@ namespace StellarAdvisorCore.Services
             }
         }
 
-        public static string GetLocalizedString(string languageCode, string key)
+        public string GetLocalizedString(string languageCode, string key)
         {
-            if(Program.Localizations.TryGetValue(languageCode, out var language))
+            if (Program.Localizations.TryGetValue(languageCode, out var language))
             {
-                if(language.TryGetValue(key, out var localizedString))
+                if (language.TryGetValue(key, out var localizedString))
                 {
                     return localizedString;
                 }
@@ -115,8 +111,5 @@ namespace StellarAdvisorCore.Services
 
             return $"[{languageCode}-{key}]";
         }
-
-        public static string GetClientLocalizedString(string key) => GetLocalizedString(Program.BotConfig.Values.ClientLocalization ?? "uk-UA", key);
-        public static string GetServerLocalizedString(string key) => GetLocalizedString(Program.BotConfig.Values.ServerLocalization ?? "en-US", key);
     }
 }

@@ -1,7 +1,7 @@
 ﻿using DSharpPlus.Entities;
 using StellarAdvisorCore.Data.Models.Entities.Characters;
 
-namespace StellarAdvisorCore.Data.Repository
+namespace StellarAdvisorCore.Data.Repository.Characters
 {
     public interface ICharacterRepository
     {

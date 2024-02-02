@@ -1,18 +1,22 @@
 ﻿using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
-using StellarAdvisorCore.Data.Models.Entities.Characters;
-using StellarAdvisorCore.Data.Repository;
+
 using StellarAdvisorCore.Extensions;
+using StellarAdvisorCore.Services.Localization;
+using StellarAdvisorCore.Data.Repository.Characters;
+using StellarAdvisorCore.Data.Models.Entities.Characters;
 
 namespace StellarAdvisorCore.Services.Characters
 {
     public class CharacterService : ICharacterService
     {
         private readonly ICharacterRepository _characterRepository;
+        private readonly ILocalizationService _localizationService;
 
-        public CharacterService(ICharacterRepository characterRepository)
+        public CharacterService(ICharacterRepository characterRepository, ILocalizationService localizationService)
         {
             _characterRepository = characterRepository;
+            _localizationService = localizationService;
         }
 
         public async Task<Character> CreateCharacter(DiscordUser discordUser, string name)
@@ -37,7 +41,7 @@ namespace StellarAdvisorCore.Services.Characters
             if (character == null)
             {
                 var embedError = new DiscordEmbedBuilder()
-                    .GetErrorEmbed(LocalizationService.GetClientLocalizedString("ch_error_undefined_character"));
+                    .GetErrorEmbed(_localizationService.GetClientLocalizedString("ch_error_undefined_character"));
 
                 await context.ResponseWithEmbedAsync(embedError);
             }
@@ -47,19 +51,19 @@ namespace StellarAdvisorCore.Services.Characters
             if (oocUser == null)
             {
                 return new DiscordEmbedBuilder()
-                    .GetErrorEmbed(LocalizationService
+                    .GetErrorEmbed(_localizationService
                     .GetClientLocalizedString("ch_error_ooc_user_is_null"));
             }
 
             var mention = oocUser.Mention;
 
             var settlement = string.IsNullOrEmpty(character?.Settlement) ? "Невідоме" : character?.Settlement;
-            var fraction = string.IsNullOrEmpty(character?.Faction) ? LocalizationService.GetClientLocalizedString("ch_not_in_the_fraction") : character?.Faction;
+            var fraction = string.IsNullOrEmpty(character?.Faction) ? _localizationService.GetClientLocalizedString("ch_not_in_the_fraction") : character?.Faction;
 
             return new DiscordEmbedBuilder()
             {
                 Color = DiscordColor.Lilac,
-                Title = LocalizationService.GetClientLocalizedString("ch_info_about_character").Replace("{characterName}", character?.Name),
+                Title = _localizationService.GetClientLocalizedString("ch_info_about_character").Replace("{characterName}", character?.Name),
                 Description = $"OOC користувач: {mention}\n" +
                 $"Поселення: {settlement}\n" +
                 $"Фракція: {fraction}"

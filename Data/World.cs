@@ -5,12 +5,17 @@ using StellarAdvisorCore.Logging;
 
 namespace StellarAdvisorCore.Data
 {
-    public static class World
+    public sealed class World
     {
-        public static List<Character>? Characters { get; private set; }
-        public static List<SettlementBase>? Settlements { get; private set; }
+        private static readonly Lazy<World> instance =
+            new Lazy<World>(() => new World());
 
-        public static void Load()
+        public static World Instance { get { return instance.Value; } }
+
+        public List<Character>? Characters { get; private set; }
+        public List<SettlementBase>? Settlements { get; private set; }
+
+        private World()
         {
             using (SqliteContext sqlite = new SqliteContext())
             {
@@ -20,7 +25,7 @@ namespace StellarAdvisorCore.Data
                     {
                         new AuroraEmpire()
                     };
-                 
+
                     Characters = sqlite.Characters.ToList();
                     Logger.LogSuccess($"World: {Characters.Count} characters successfully loaded");
 

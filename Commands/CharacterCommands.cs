@@ -1,17 +1,20 @@
 ﻿using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 
-using StellarAdvisorCore.Data.Context;
-using StellarAdvisorCore.Data.Repository;
 using StellarAdvisorCore.Extensions;
+using StellarAdvisorCore.Data.Context;
 using StellarAdvisorCore.Services.Characters;
+using StellarAdvisorCore.Services.Localization;
+using StellarAdvisorCore.Data.Repository.Characters;
+using StellarAdvisorCore.Data.Repository.Localization;
 
 namespace StellarAdvisorCore.Commands
 {
     public class CharacterCommands : ApplicationCommandModule
     {
-        private readonly CharacterRepository _characterRepository = new CharacterRepository();
-        private readonly CharacterService _characterService = new CharacterService(new CharacterRepository());
+        private readonly ICharacterRepository _characterRepository = new CharacterRepository();
+        private readonly ILocalizationService _localizationService = new LocalizationService(new LocalizationRepository());
+        private readonly ICharacterService _characterService = new CharacterService(new CharacterRepository(), new LocalizationService(new LocalizationRepository()));
 
         [SlashCommand("createcharacter", "Створити ігрового персонажа")]
         public async Task CreateCharacterCommand(InteractionContext context,
